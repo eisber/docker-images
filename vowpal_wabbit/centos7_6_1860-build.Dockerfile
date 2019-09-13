@@ -41,12 +41,15 @@ RUN wget ftp://ftp.mirrorservice.org/sites/sourceware.org/pub/gcc/releases/gcc-9
 
 # Build gcc-9.2
 # For limits see https://github.com/docker/hub-feedback/issues/519
-RUN timeout -t ${TIMEOUT}; make -j${CPU_CORES}; exit 0;
+RUN timeout ${TIMEOUT}; make -j${CPU_CORES}; exit 0;
 
-# Resume gcc-9.2 build
-RUN timeout -t ${TIMEOUT}; make -j${CPU_CORES}; exit 0;
+# Resume gcc build
+RUN timeout ${TIMEOUT}; make -j${CPU_CORES}; exit 0;
 
-# Install gcc-9.2
+# Resume gcc build
+RUN timeout ${TIMEOUT}; make -j${CPU_CORES}; exit 0;
+
+# Install gcc
 RUN make install \
    && cd .. && rm -rf gcc-9.2.0.tar.gz gcc-9.2.0 \ 
    && chmod +x /usr/local/libexec/gcc/x86_64-pc-linux-gnu/9.2.0/cc1plus
@@ -70,9 +73,17 @@ RUN wget -O boost.tar.gz 'https://sourceforge.net/projects/boost/files/boost/1.7
    && cd boost_1_70_0 \
    && ./bootstrap.sh --prefix=/boost_output --with-libraries=program_options,system,thread,test,chrono,date_time,atomic 
 
+# Build boost
+RUN timeout ${TIMEOUT}; ./bjam -j${CPU_CORES} cxxflags=-fPIC cflags=-fPIC -a install; exit 0;
+
+# Resume boost build
+RUN timeout ${TIMEOUT}; ./bjam -j${CPU_CORES} cxxflags=-fPIC cflags=-fPIC -a install; exit 0;
+
+# Resume boost build
+RUN timeout ${TIMEOUT}; ./bjam -j${CPU_CORES} cxxflags=-fPIC cflags=-fPIC -a install; exit 0;
+
 # Install boost
-RUN ./bjam -j${CPU_CORES} cxxflags=-fPIC cflags=-fPIC -a install \
-   && /usr/bin/cp -f /boost_output/lib/libboost_system.a /boost_output/lib/libboost_program_options.a /usr/lib64 \
+RUN /usr/bin/cp -f /boost_output/lib/libboost_system.a /boost_output/lib/libboost_program_options.a /usr/lib64 \
    && cd .. && rm -rf boost_1_70_0 boost.tar.gz
 
 # Download maven dependencies
