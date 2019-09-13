@@ -4,8 +4,10 @@
 # (replace 27c82a691b62 with whatever got printed at the end of docker build)
 # * docker tag 27c82a691b62 eisber/centos7.6.1810-build:0.1.0
 # * docker push eisber/centos7.6.1810-build
+# 
+# alternative base version FROM centos:centos7.5.1804
 
-FROM centos:centos7.6.1810
+FROM centos:centos7.5.1804
 
 RUN yum -y updateinfo \
    && yum install -y \
@@ -30,14 +32,22 @@ RUN version=3.13 && build=5 \
    && ln -s /opt/cmake/bin/cmake /usr/bin/cmake \
    && rm -f cmake-$version.$build-Linux-x86_64.sh
 
-# Install gcc-9.2
+# Download gcc-9.2
 RUN wget ftp://ftp.mirrorservice.org/sites/sourceware.org/pub/gcc/releases/gcc-9.2.0/gcc-9.2.0.tar.gz \
    && tar xfz gcc-9.2.0.tar.gz \
    && cd gcc-9.2.0 \
    && ./contrib/download_prerequisites \
-   && ./configure --disable-multilib --enable-languages=c,c++ --with-pic \
-   && make -j 2 \
-   && make install \
+   && ./configure --disable-multilib --enable-languages=c,c++ --with-pic 
+
+# Build gcc-9.2
+# For limits see https://github.com/docker/hub-feedback/issues/519
+RUN timeout -t ${TIMEOUT}; make -j${CPU_CORES}; exit 0;
+
+# Resume gcc-9.2 build
+RUN timeout -t ${TIMEOUT}; make -j${CPU_CORES}; exit 0;
+
+# Install gcc-9.2
+RUN make install \
    && cd .. && rm -rf gcc-9.2.0.tar.gz gcc-9.2.0 \ 
    && chmod +x /usr/local/libexec/gcc/x86_64-pc-linux-gnu/9.2.0/cc1plus
 
@@ -53,13 +63,15 @@ RUN wget -O zlib.tar.gz 'https://zlib.net/fossils/zlib-1.2.8.tar.gz' \
    && make install \
    && cd .. && rm -rf zlib*
 
-# Install boost (use bjam -j16 on your beefy machine)
+# Download boost 
 RUN wget -O boost.tar.gz 'https://sourceforge.net/projects/boost/files/boost/1.70.0/boost_1_70_0.tar.gz/download' \
    && tar -xvzf boost.tar.gz \
    && mkdir boost_output \
    && cd boost_1_70_0 \
-   && ./bootstrap.sh --prefix=/boost_output --with-libraries=program_options,system,thread,test,chrono,date_time,atomic \
-   && ./bjam -j2 cxxflags=-fPIC cflags=-fPIC -a install \
+   && ./bootstrap.sh --prefix=/boost_output --with-libraries=program_options,system,thread,test,chrono,date_time,atomic 
+
+# Install boost
+RUN ./bjam -j${CPU_CORES} cxxflags=-fPIC cflags=-fPIC -a install \
    && /usr/bin/cp -f /boost_output/lib/libboost_system.a /boost_output/lib/libboost_program_options.a /usr/lib64 \
    && cd .. && rm -rf boost_1_70_0 boost.tar.gz
 
