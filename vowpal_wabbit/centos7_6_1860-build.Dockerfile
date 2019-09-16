@@ -42,15 +42,15 @@ RUN wget ftp://ftp.mirrorservice.org/sites/sourceware.org/pub/gcc/releases/gcc-9
 # Build gcc-9.2
 # For limits see https://github.com/docker/hub-feedback/issues/519
 RUN cd gcc-9.2.0 \
-   && timeout ${TIMEOUT}; make -j${CPU_CORES}; exit 0;
+   && timeout ${TIMEOUT}; CXXFLAGS="$(CXXFLAGS) --param ggc-min-expand=0 --param ggc-min-heapsize=8192" make -j${CPU_CORES}; exit 0;
 
 # Resume gcc build
 RUN cd gcc-9.2.0 \
-   && timeout ${TIMEOUT}; make -j${CPU_CORES}; exit 0;
+   && timeout ${TIMEOUT}; CXXFLAGS="$(CXXFLAGS) --param ggc-min-expand=0 --param ggc-min-heapsize=8192" make -j${CPU_CORES}; exit 0;
 
 # Resume gcc build
 RUN cd gcc-9.2.0 \
-   && timeout ${TIMEOUT}; make -j${CPU_CORES}; exit 0;
+   && timeout ${TIMEOUT}; CXXFLAGS="$(CXXFLAGS) --param ggc-min-expand=0 --param ggc-min-heapsize=8192" make -j${CPU_CORES}; exit 0;
 
 # Install gcc
 RUN cd gcc-9.2.0 \
