@@ -3,9 +3,7 @@
 # * docker build - < centos7_6_1860-build.Dockerfile
 # (replace 27c82a691b62 with whatever got printed at the end of docker build)
 # * docker tag 27c82a691b62 eisber/centos7.6.1810-build:0.1.0
-# * docker push eisber/centos7.6.1810-build
-# 
-# alternative base version FROM centos:centos7.5.1804
+# * docker push eisber/centos7.5.1804-build
 
 FROM centos:centos7.5.1804
 
@@ -42,15 +40,7 @@ RUN wget ftp://ftp.mirrorservice.org/sites/sourceware.org/pub/gcc/releases/gcc-9
 # Build gcc-9.2
 # For limits see https://github.com/docker/hub-feedback/issues/519
 RUN cd gcc-9.2.0 \
-   && timeout ${TIMEOUT}; CXXFLAGS="$(CXXFLAGS) --param ggc-min-expand=0 --param ggc-min-heapsize=8192" make -j${CPU_CORES}; exit 0;
-
-# Resume gcc build
-RUN cd gcc-9.2.0 \
-   && timeout ${TIMEOUT}; CXXFLAGS="$(CXXFLAGS) --param ggc-min-expand=0 --param ggc-min-heapsize=8192" make -j${CPU_CORES}; exit 0;
-
-# Resume gcc build
-RUN cd gcc-9.2.0 \
-   && timeout ${TIMEOUT}; CXXFLAGS="$(CXXFLAGS) --param ggc-min-expand=0 --param ggc-min-heapsize=8192" make -j${CPU_CORES}; exit 0;
+   && make -j${CPU_CORES}
 
 # Install gcc
 RUN cd gcc-9.2.0 \
@@ -79,15 +69,7 @@ RUN wget -O boost.tar.gz 'https://sourceforge.net/projects/boost/files/boost/1.7
 
 # Build boost
 RUN cd boost_1_70_0 \
-   && timeout ${TIMEOUT}; ./bjam -j${CPU_CORES} cxxflags=-fPIC cflags=-fPIC -a install; exit 0;
-
-# Resume boost build
-RUN cd boost_1_70_0 \
-   && timeout ${TIMEOUT}; ./bjam -j${CPU_CORES} cxxflags=-fPIC cflags=-fPIC -a install; exit 0;
-
-# Resume boost build
-RUN cd boost_1_70_0 \
-   && timeout ${TIMEOUT}; ./bjam -j${CPU_CORES} cxxflags=-fPIC cflags=-fPIC -a install; exit 0;
+   && ./bjam -j${CPU_CORES} cxxflags=-fPIC cflags=-fPIC -a install
 
 # Install boost
 RUN cd boost_1_70_0 \
